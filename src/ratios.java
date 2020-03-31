@@ -1,7 +1,7 @@
 /*
 ID: shacse01
 LANG: JAVA
-TASK: concom
+TASK: ratios
 */
 
 import java.io.*;
@@ -14,10 +14,10 @@ import java.util.*;
  *
  */
 
-public class concom {
+public class ratios {
 
-	private static int dx[] = { 1, 0, -1, 0 };
-	private static int dy[] = { 0, -1, 0, 1 };
+	private static int dx[] = {-1, 0, 1, 0 };
+	private static int dy[] = {0, 1, 0, -1 };
 
 	private static final long INF = Long.MAX_VALUE;
 	private static final int INT_INF = Integer.MAX_VALUE;
@@ -41,8 +41,8 @@ public class concom {
 //		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("src/test.out")));
 		
 		
-		InputReader in = new InputReader(new FileInputStream("concom.in"));
-		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("concom.out")));
+		InputReader in = new InputReader(new FileInputStream("ratios.in"));
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("ratios.out")));
 
 		
 /*
@@ -50,59 +50,95 @@ public class concom {
 
 
 */
-		
-		int t = in.nextInt();
-		
-		int n = 100;
-		
-		int dp[][] = new int[n + 7][n + 7];
-		int adj[][] = new int[n + 7][n + 7];
-		for(int i = 0; i < t; i++) {
-			int u = in.nextInt();
-			int v = in.nextInt();
-			int w = in.nextInt();
-			if(u != v) {
-				adj[u][v] = w;
-				
-			}
-			
+	
+		int n = 3;
+		int r[] = new int[n];
+		for(int i = 0; i < n; i++) {
+			r[i] = in.nextInt();
 		}
-		
-		List<Pair> pairs = new ArrayList<>();
+		int ratios[][] = new int[n][n];
+		for(int i = 0; i < n; i++) {
+			for(int j = 0; j < n; j++) {
+				ratios[i][j] = in.nextInt();
+			}
+		}
+		List<Mixture> list = new ArrayList<>();
+		for (int i = 0; i <= 100; i++) {
+			for (int j = 0; j <= 100; j++) {
+				for (int k = 0; k <= 100; k++) {
+					int sum1 = 0;
+					int sum2 = 0;
+					int sum3 = 0;
+					sum1 = (i * ratios[0][0]) + (j * ratios[1][0]) + (k * ratios[2][0]);
+					sum2 = (i * ratios[0][1]) + (j * ratios[1][1]) + (k * ratios[2][1]);
+					sum3 = (i * ratios[0][2]) + (j * ratios[1][2]) + (k * ratios[2][2]);
 
-		boolean found = true;
-		while(found) {
-			found = false;
-			for(int i = 1; i <= n; i++) {
-				for(int j = 1; j <= n; j++) {
-					if(dp[i][j] == 0 && adj[i][j] > 50) {
-						dp[i][j] = 1;
-						found = true;
-						for(int k = 1; k <= n; k++) {
-							if(i != k && j != k) {
-								adj[i][k] += adj[j][k];
-								if(adj[i][k] > 50) {
-									adj[i][k] = 51;
-									dp[i][j] = 1;
-								}
-							}
+					if (r[0] != 0 && r[1] != 0 && r[2] != 0 && sum1 % r[0] == 0 && sum2 % r[1] == 0
+							&& sum3 % r[2] == 0) {
+						int c1 = sum1 / r[0];
+						int c2 = sum2 / r[1];
+						int c3 = sum3 / r[2];
+						if (c1 == c2 && c2 == c3 && c1 != 0) {
+							list.add(new Mixture(i, j, k, c1));
 						}
+						continue;
+					}
+					int c1 = -1;
+					int c2 = -1;
+					int c3 = -1;
+					if(r[0] == 0 && sum1 == 0) {
+						c1 = 0;
+					}
+					else if(r[0] != 0 && sum1 % r[0] == 0) {
+						c1 = sum1 / r[0];
+					}
+					
+					if(r[1] == 0 && sum2 == 0) {
+						c2 = 0;
+					}
+					else if(r[1] != 0 && sum2 % r[1] == 0) {
+						c2 = sum2 / r[1];
+					}
+					
+					if(r[2] == 0 && sum3 == 0) {
+						c3 = 0;
+					}
+					else if(r[2] != 0 && sum3 % r[2] == 0) {
+						c3 = sum3 / r[2];
+					}
+
+					if(c1 != -1 && c2 != -1 && c3 != -1) {
+						int mx = max(c1, max(c2, c3));
+						if(mx != 0) {
+							if((mx == c1 || c1 == 0) && (mx == c2 || c2 == 0) && (mx == c3 || c3 == 0)) {
+								list.add(new Mixture(i, j, k, mx));
+							}	
+						}
+						
 					}
 				}
+
 			}
 		}
 		
-		for(int i = 1; i <= n; i++) {
-			for(int j = 1; j <= n; j++) {
-				if(dp[i][j] == 1) {
-					pairs.add(new Pair(i, j));
+		
+		Collections.sort(list, new Comparator<Mixture>() {
+
+			@Override
+			public int compare(Mixture m1, Mixture m2) {
+				int val = Integer.compare(m1.unit, m2.unit);
+				if(val == 0) {
+					return Integer.compare(m1.a + m1.b + m1.c, m2.a + m2.b + m2.c);
 				}
+				return val;
 			}
+		});
+		if(list.size() > 0) {
+			Mixture mixture = list.get(0);
+			out.println(mixture);
 		}
-		
-		
-		for(Pair p : pairs) {
-			out.println(p);
+		else {
+			out.println("NONE");
 		}
 		
 		out.flush();
@@ -110,20 +146,37 @@ public class concom {
 		System.exit(0);
 	}
 	
-	private static class Pair{
-		int u;
-		int v;
-		Pair(int u, int v){
-			this.u = u;
-			this.v = v;
+	
+	private static class Mixture{
+		int unit;
+		int a;
+		int b; 
+		int c;
+		public Mixture() {
 		}
-		
+		Mixture(int a, int b, int c, int unit){
+			this.unit = unit;
+			this.a = a;
+			this.b = b;
+			this.c = c;
+		}
 		@Override
 		public String toString() {
-			return this.u + " " + this.v;
+			return a + " " + b + " " + c + " " + unit;
 		}
 	}
 	
+	private static int log(int x, int base) {
+		return (int) (Math.log(x) / Math.log(base));
+	}
+	
+	private static double getDistance(Point p1, Point p2) {
+		double dx = p1.a - p2.a;
+		double dy = p1.b - p2.b;
+		
+		return Math.sqrt((dx * dx) + (dy * dy));
+	}
+
 	private static String getBinaryStr(int n, int bit) {
 		StringBuilder sb = new StringBuilder();
 		String s = Integer.toBinaryString(n);
@@ -157,22 +210,25 @@ public class concom {
 
 
 	private static class Point{
-		int a;
-		int b;
-		boolean visited = false;
-		public Point(int a, int b){
+		double a;
+		double b;
+		public Point(double a, double b){
 			this.a = a;
 			this.b = b;
 		}
 		
 		@Override
 		public int hashCode() {
-			return a + b;
+			double prime = 31;
+			double result = 1;
+			result = prime * result + this.a; 
+			result = prime * result + this.b;
+			return (int)result;
 		}
 		
 		@Override
 		public String toString() {
-			return a + " " + b;
+			return this.a + "," + this.b;
 		}
 		
 		@Override

@@ -1,7 +1,7 @@
 /*
 ID: shacse01
 LANG: JAVA
-TASK: concom
+TASK: fact4
 */
 
 import java.io.*;
@@ -14,10 +14,10 @@ import java.util.*;
  *
  */
 
-public class concom {
+public class fact4 {
 
-	private static int dx[] = { 1, 0, -1, 0 };
-	private static int dy[] = { 0, -1, 0, 1 };
+	private static int dx[] = {-1, 0, 1, 0 };
+	private static int dy[] = {0, 1, 0, -1 };
 
 	private static final long INF = Long.MAX_VALUE;
 	private static final int INT_INF = Integer.MAX_VALUE;
@@ -41,89 +41,138 @@ public class concom {
 //		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("src/test.out")));
 		
 		
-		InputReader in = new InputReader(new FileInputStream("concom.in"));
-		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("concom.out")));
+		InputReader in = new InputReader(new FileInputStream("fact4.in"));
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("fact4.out")));
 
 		
 /*
 
 
-
 */
 		
-		int t = in.nextInt();
-		
-		int n = 100;
-		
-		int dp[][] = new int[n + 7][n + 7];
-		int adj[][] = new int[n + 7][n + 7];
-		for(int i = 0; i < t; i++) {
-			int u = in.nextInt();
-			int v = in.nextInt();
-			int w = in.nextInt();
-			if(u != v) {
-				adj[u][v] = w;
-				
-			}
-			
-		}
-		
-		List<Pair> pairs = new ArrayList<>();
-
-		boolean found = true;
-		while(found) {
-			found = false;
-			for(int i = 1; i <= n; i++) {
-				for(int j = 1; j <= n; j++) {
-					if(dp[i][j] == 0 && adj[i][j] > 50) {
-						dp[i][j] = 1;
-						found = true;
-						for(int k = 1; k <= n; k++) {
-							if(i != k && j != k) {
-								adj[i][k] += adj[j][k];
-								if(adj[i][k] > 50) {
-									adj[i][k] = 51;
-									dp[i][j] = 1;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		
-		for(int i = 1; i <= n; i++) {
-			for(int j = 1; j <= n; j++) {
-				if(dp[i][j] == 1) {
-					pairs.add(new Pair(i, j));
-				}
-			}
-		}
+		int n =  in.nextInt();
 		
 		
-		for(Pair p : pairs) {
-			out.println(p);
-		}
+		// solution -> 1
+		
+		int ans = solve1(n);
+		out.println(ans);
+		
+		
+		/*
+		
+		// solution -> 2
+		
+		ans = solve2(n);
+		out.println(ans);
+		
+		*/
+		
+		/*
+		// solution -> 3
+		
+		ans = solve3(n);
+		out.println(ans);
+		
+		*/
+		
 		
 		out.flush();
 		out.close();
 		System.exit(0);
 	}
 	
-	private static class Pair{
-		int u;
-		int v;
-		Pair(int u, int v){
-			this.u = u;
-			this.v = v;
+	private static int solve1(int n) {
+		BigInteger[] fact = new BigInteger[n + 1];
+		fact[0] = BigInteger.ONE;
+		StringBuilder sb = new StringBuilder();
+		for(int i = 1; i <= n; i++) {
+			fact[i] = fact[i - 1].multiply(BigInteger.valueOf(i));
+//			System.out.println(i + "!=" + sb.toString() + " => " + fact[i]);
 		}
-		
-		@Override
-		public String toString() {
-			return this.u + " " + this.v;
+		sb.append(fact[n].toString());
+		int len = sb.length();
+		for(int i = len - 1; i >= 0; i--) {
+			if(sb.charAt(i) != '0') {
+				return sb.charAt(i) - '0';
+			}
 		}
+		return 0;
 	}
 	
+	private static int solve2(int n) {
+		BigInteger res = BigInteger.valueOf(1);
+		int two = 0;
+		int five = 0;
+		for(int i = 1; i <= n; i++) {
+			int val = i;
+			while(val % 2 == 0) {
+				val /= 2;
+				two++;
+			}
+			while(val % 5 == 0) {
+				five++;
+				val /= 5;
+			}
+			res = res.multiply(BigInteger.valueOf(val));
+		}
+		
+		if(two > five) {
+			for(int i = five + 1; i <= two; i++) {
+				res = res.multiply(BigInteger.valueOf(2));
+			}
+		}
+		else if(two < five) {
+			for(int i = two + 1; i <= five; i++) {
+				res = res.multiply(BigInteger.valueOf(5));
+			}
+		}
+		String str = res.toString();
+		
+		return str.charAt(str.length() - 1) - '0';
+	}
+	
+	private static int solve3(int n) {
+		int two = 0;
+		int five = 0;
+		int res = 1;
+		for(int i = 1; i <= n; i++) {
+			int val = i;
+			while(val % 2 == 0) {
+				val /= 2;
+				two++;
+			}
+			while(val % 5 == 0) {
+				five++;
+				val /= 5;
+			}
+			res = (res * val) % 10;
+		}
+		
+		if(two > five) {
+			for(int i = five + 1; i <= two; i++) {
+				res = (res * 2) % 10;
+			}
+		}
+		else if(two < five) {
+			for(int i = two + 1; i <= five; i++) {
+				res = (res * 5) % 10;
+			}
+		}
+		return res;
+	}
+	
+	private static int log(int x, int base) {
+		return (int) (Math.log(x) / Math.log(base));
+	}
+	
+	private static double getDistance(Point p1, Point p2) {
+		double dx = p1.a - p2.a;
+		double dy = p1.b - p2.b;
+		
+		return Math.sqrt((dx * dx) + (dy * dy));
+	}
+
 	private static String getBinaryStr(int n, int bit) {
 		StringBuilder sb = new StringBuilder();
 		String s = Integer.toBinaryString(n);
@@ -157,22 +206,25 @@ public class concom {
 
 
 	private static class Point{
-		int a;
-		int b;
-		boolean visited = false;
-		public Point(int a, int b){
+		double a;
+		double b;
+		public Point(double a, double b){
 			this.a = a;
 			this.b = b;
 		}
 		
 		@Override
 		public int hashCode() {
-			return a + b;
+			double prime = 31;
+			double result = 1;
+			result = prime * result + this.a; 
+			result = prime * result + this.b;
+			return (int)result;
 		}
 		
 		@Override
 		public String toString() {
-			return a + " " + b;
+			return this.a + "," + this.b;
 		}
 		
 		@Override

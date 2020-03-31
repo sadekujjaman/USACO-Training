@@ -1,7 +1,7 @@
 /*
 ID: shacse01
 LANG: JAVA
-TASK: concom
+TASK: butter
 */
 
 import java.io.*;
@@ -14,10 +14,10 @@ import java.util.*;
  *
  */
 
-public class concom {
+public class butter {
 
-	private static int dx[] = { 1, 0, -1, 0 };
-	private static int dy[] = { 0, -1, 0, 1 };
+	private static int dx[] = {-1, 0, 1, 0 };
+	private static int dy[] = {0, 1, 0, -1 };
 
 	private static final long INF = Long.MAX_VALUE;
 	private static final int INT_INF = Integer.MAX_VALUE;
@@ -41,8 +41,8 @@ public class concom {
 //		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("src/test.out")));
 		
 		
-		InputReader in = new InputReader(new FileInputStream("concom.in"));
-		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("concom.out")));
+		InputReader in = new InputReader(new FileInputStream("butter.in"));
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("butter.out")));
 
 		
 /*
@@ -50,80 +50,126 @@ public class concom {
 
 
 */
+	
+		int n = in.nextInt();
+		int p = in.nextInt();
+		int c = in.nextInt();
+		int cowPastures[] = new int[n];
+		for(int i = 0; i < n; i++) {
+			int a = in.nextInt();
+			a--;
+			cowPastures[i] = a;
+		}
 		
-		int t = in.nextInt();
+		List<Edge> adj[] = new ArrayList[p];
+		for(int i = 0; i < p; i++) {
+			adj[i] = new ArrayList<>();
+		}
 		
-		int n = 100;
-		
-		int dp[][] = new int[n + 7][n + 7];
-		int adj[][] = new int[n + 7][n + 7];
-		for(int i = 0; i < t; i++) {
+		for(int i = 0; i < c; i++) {
 			int u = in.nextInt();
 			int v = in.nextInt();
 			int w = in.nextInt();
-			if(u != v) {
-				adj[u][v] = w;
-				
-			}
-			
+			u--;
+			v--;
+			adj[u].add(new Edge(u, v, w));
+			adj[v].add(new Edge(v, u, w));
 		}
 		
-		List<Pair> pairs = new ArrayList<>();
-
-		boolean found = true;
-		while(found) {
-			found = false;
-			for(int i = 1; i <= n; i++) {
-				for(int j = 1; j <= n; j++) {
-					if(dp[i][j] == 0 && adj[i][j] > 50) {
-						dp[i][j] = 1;
-						found = true;
-						for(int k = 1; k <= n; k++) {
-							if(i != k && j != k) {
-								adj[i][k] += adj[j][k];
-								if(adj[i][k] > 50) {
-									adj[i][k] = 51;
-									dp[i][j] = 1;
-								}
-							}
-						}
-					}
-				}
-			}
+		long[] totalCost = new long[p];
+		
+		for(int i = 0; i < n; i++) {
+			dijstra(cowPastures[i], p, cowPastures, adj, totalCost);
 		}
 		
-		for(int i = 1; i <= n; i++) {
-			for(int j = 1; j <= n; j++) {
-				if(dp[i][j] == 1) {
-					pairs.add(new Pair(i, j));
-				}
-			}
+		long min = INF;
+		for(int i = 0; i < p; i++) {
+			min = min(min, totalCost[i]);
 		}
 		
-		
-		for(Pair p : pairs) {
-			out.println(p);
-		}
+		out.println(min);
 		
 		out.flush();
 		out.close();
 		System.exit(0);
 	}
 	
-	private static class Pair{
-		int u;
-		int v;
-		Pair(int u, int v){
-			this.u = u;
-			this.v = v;
+	private static void dijstra(int src, int n, int[] cowPastures, List<Edge>[] adj, long[] totalCost) {
+		boolean[] visited = new boolean[n];
+		long[] distance = new long[n];
+		Arrays.fill(distance, INF);
+		
+		PriorityQueue<Node> queue = new PriorityQueue<>(new Comparator<Node>() {
+
+			@Override
+			public int compare(Node n1, Node n2) {
+				return Long.compare(n1.dest, n2.dest);
+			}
+		});
+		
+		
+		distance[src] = 0;
+		queue.add(new Node(src, distance[src]));
+		
+		while(!queue.isEmpty()) {
+			Node unode = queue.remove();
+			if(!visited[unode.u]) {
+				visited[unode.u] = true;
+				for(Edge e : adj[unode.u]) {
+					int v = e.v;
+					if(!visited[e.v]) {
+						long cost = distance[unode.u] + e.w;
+						if(cost < distance[v]) {
+							distance[v] = cost;
+							queue.add(new Node(v, distance[v]));
+						}
+					}
+				}
+			}
 		}
 		
-		@Override
-		public String toString() {
-			return this.u + " " + this.v;
+		
+		for(int i = 0; i < n; i++) {
+			totalCost[i] += distance[i];
 		}
+		
+//		System.out.println(Arrays.toString(distance));
+//		System.out.println(Arrays.toString(totalCost));
+		
 	}
 	
+	private static class Node{
+		int u;
+		long dest;
+		Node(int u, long dest){
+			this.u = u;
+			this.dest = dest;
+		}
+	}
+
+	private static class Edge{
+		int u;
+		int v;
+		int w;
+		Edge(int u, int v, int w){
+			this.u = u;
+			this.v = v;
+			this.w = w;
+		}
+	}
+
+	
+	private static int log(int x, int base) {
+		return (int) (Math.log(x) / Math.log(base));
+	}
+	
+	private static double getDistance(Point p1, Point p2) {
+		double dx = p1.a - p2.a;
+		double dy = p1.b - p2.b;
+		
+		return Math.sqrt((dx * dx) + (dy * dy));
+	}
+
 	private static String getBinaryStr(int n, int bit) {
 		StringBuilder sb = new StringBuilder();
 		String s = Integer.toBinaryString(n);
@@ -157,22 +203,25 @@ public class concom {
 
 
 	private static class Point{
-		int a;
-		int b;
-		boolean visited = false;
-		public Point(int a, int b){
+		double a;
+		double b;
+		public Point(double a, double b){
 			this.a = a;
 			this.b = b;
 		}
 		
 		@Override
 		public int hashCode() {
-			return a + b;
+			double prime = 31;
+			double result = 1;
+			result = prime * result + this.a; 
+			result = prime * result + this.b;
+			return (int)result;
 		}
 		
 		@Override
 		public String toString() {
-			return a + " " + b;
+			return this.a + "," + this.b;
 		}
 		
 		@Override

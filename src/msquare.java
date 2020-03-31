@@ -1,7 +1,7 @@
 /*
 ID: shacse01
 LANG: JAVA
-TASK: concom
+TASK: msquare
 */
 
 import java.io.*;
@@ -14,10 +14,10 @@ import java.util.*;
  *
  */
 
-public class concom {
+public class msquare {
 
-	private static int dx[] = { 1, 0, -1, 0 };
-	private static int dy[] = { 0, -1, 0, 1 };
+	private static int dx[] = {-1, 0, 1, 0 };
+	private static int dy[] = {0, 1, 0, -1 };
 
 	private static final long INF = Long.MAX_VALUE;
 	private static final int INT_INF = Integer.MAX_VALUE;
@@ -41,8 +41,8 @@ public class concom {
 //		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("src/test.out")));
 		
 		
-		InputReader in = new InputReader(new FileInputStream("concom.in"));
-		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("concom.out")));
+		InputReader in = new InputReader(new FileInputStream("msquare.in"));
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("msquare.out")));
 
 		
 /*
@@ -50,80 +50,144 @@ public class concom {
 
 
 */
+	
+		int src[] = new int[8];
+		for(int i = 0; i < 8; i++) {
+			src[i] = i + 1;
+		}
 		
-		int t = in.nextInt();
+		int dest[] = new int[8];
+		for(int i = 0; i < 8; i++) {
+			dest[i] = in.nextInt();
+		}
 		
-		int n = 100;
-		
-		int dp[][] = new int[n + 7][n + 7];
-		int adj[][] = new int[n + 7][n + 7];
-		for(int i = 0; i < t; i++) {
-			int u = in.nextInt();
-			int v = in.nextInt();
-			int w = in.nextInt();
-			if(u != v) {
-				adj[u][v] = w;
-				
-			}
+		Queue<Move> queue = new LinkedList<>();
+		Move st = new Move(0, "", src);
+		queue.add(st);
+		int num1 = getValue(dest);
+		Set<Integer> set = new HashSet<>();
+		while(!queue.isEmpty()) {
+			Move current = queue.remove();
 			
-		}
-		
-		List<Pair> pairs = new ArrayList<>();
-
-		boolean found = true;
-		while(found) {
-			found = false;
-			for(int i = 1; i <= n; i++) {
-				for(int j = 1; j <= n; j++) {
-					if(dp[i][j] == 0 && adj[i][j] > 50) {
-						dp[i][j] = 1;
-						found = true;
-						for(int k = 1; k <= n; k++) {
-							if(i != k && j != k) {
-								adj[i][k] += adj[j][k];
-								if(adj[i][k] > 50) {
-									adj[i][k] = 51;
-									dp[i][j] = 1;
-								}
-							}
-						}
+			if(current.val == num1) {
+				
+				out.println(current.count);
+				for(int i = 0; i < current.count; i++) {
+					out.print(current.str.charAt(i));
+					if(i % 60 == 59) {
+						out.print("\n");
 					}
+					
 				}
+				out.print("\n");
+				break;
 			}
-		}
-		
-		for(int i = 1; i <= n; i++) {
-			for(int j = 1; j <= n; j++) {
-				if(dp[i][j] == 1) {
-					pairs.add(new Pair(i, j));
-				}
+			if(set.contains(current.val)) {
+				continue;
 			}
+			set.add(current.val);
+			
+			Move A = getAMove(current);
+			Move B = getBMove(current);
+			Move C = getCMove(current);
+			queue.add(A);
+			queue.add(B);
+			queue.add(C);
 		}
 		
-		
-		for(Pair p : pairs) {
-			out.println(p);
-		}
 		
 		out.flush();
 		out.close();
 		System.exit(0);
 	}
-	
-	private static class Pair{
-		int u;
-		int v;
-		Pair(int u, int v){
-			this.u = u;
-			this.v = v;
+
+
+
+	private static int getValue(int[] src) {
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0; i < src.length; i++) {
+			sb.append(src[i]);
 		}
-		
-		@Override
-		public String toString() {
-			return this.u + " " + this.v;
+		return Integer.parseInt(sb.toString());
+	}
+	
+	private static Move getCMove(Move current) {
+		int arr[] = current.arr;
+		int len = arr.length;
+		int res[] = new int[len];
+		for(int i = 0; i < len; i++) {
+			res[i] = arr[i];
+		}
+		int temp = res[1];
+		res[1] = res[6];
+		res[6] = res[5];
+		res[5] = res[2];
+		res[2] = temp;
+		return new Move(current.count + 1, current.str + "C", res);
+	}
+
+
+	private static Move getBMove(Move current) {
+		int arr[] = current.arr;
+		int len = arr.length;
+		int res[] = new int[len];
+		res[0] = arr[3];
+		for(int i = 1; i < 4; i++) {
+			res[i] = arr[i - 1];
+		}
+		for(int i = 4; i < 7; i++) {
+			res[i] = arr[i + 1];
+		}
+		res[7] = arr[4];
+		return new Move(current.count + 1, current.str + "B", res);
+	}
+
+
+	private static Move getAMove(Move current) {
+		int arr[] = current.arr;
+		int len = arr.length;
+		int res[] = new int[len];
+		for(int i = 0; i < len; i++) {
+			res[i] = arr[len - i - 1];
+		}
+		return new Move(current.count + 1, current.str + "A", res);
+	}
+
+
+	private static boolean isEqual(int[] arr, int[] dest) {
+		for(int i = 0; i < arr.length; i++) {
+			if(arr[i] != dest[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+
+	private static class Move{
+		int count;
+		String str;
+		int[] arr;
+		int val;
+		Move(int count, String str, int[] arr){
+			this.count = count;
+			this.str = str;
+			this.arr = arr;
+			this.val = getValue(arr);
 		}
 	}
 	
+	private static int log(int x, int base) {
+		return (int) (Math.log(x) / Math.log(base));
+	}
+	
+	private static double getDistance(Point p1, Point p2) {
+		double dx = p1.a - p2.a;
+		double dy = p1.b - p2.b;
+		
+		return Math.sqrt((dx * dx) + (dy * dy));
+	}
+
 	private static String getBinaryStr(int n, int bit) {
 		StringBuilder sb = new StringBuilder();
 		String s = Integer.toBinaryString(n);
@@ -157,22 +221,25 @@ public class concom {
 
 
 	private static class Point{
-		int a;
-		int b;
-		boolean visited = false;
-		public Point(int a, int b){
+		double a;
+		double b;
+		public Point(double a, double b){
 			this.a = a;
 			this.b = b;
 		}
 		
 		@Override
 		public int hashCode() {
-			return a + b;
+			double prime = 31;
+			double result = 1;
+			result = prime * result + this.a; 
+			result = prime * result + this.b;
+			return (int)result;
 		}
 		
 		@Override
 		public String toString() {
-			return a + " " + b;
+			return this.a + "," + this.b;
 		}
 		
 		@Override

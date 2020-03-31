@@ -1,7 +1,7 @@
 /*
 ID: shacse01
 LANG: JAVA
-TASK: concom
+TASK: contact
 */
 
 import java.io.*;
@@ -14,10 +14,10 @@ import java.util.*;
  *
  */
 
-public class concom {
+public class contact {
 
-	private static int dx[] = { 1, 0, -1, 0 };
-	private static int dy[] = { 0, -1, 0, 1 };
+	private static int dx[] = {-1, 0, 1, 0 };
+	private static int dy[] = {0, 1, 0, -1 };
 
 	private static final long INF = Long.MAX_VALUE;
 	private static final int INT_INF = Integer.MAX_VALUE;
@@ -41,89 +41,143 @@ public class concom {
 //		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("src/test.out")));
 		
 		
-		InputReader in = new InputReader(new FileInputStream("concom.in"));
-		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("concom.out")));
+		InputReader in = new InputReader(new FileInputStream("contact.in"));
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("contact.out")));
 
 		
 /*
 
+2 4 10
+01010010010001000111101100001010011001111000010010011110010000000
 
 
 */
 		
-		int t = in.nextInt();
 		
-		int n = 100;
 		
-		int dp[][] = new int[n + 7][n + 7];
-		int adj[][] = new int[n + 7][n + 7];
-		for(int i = 0; i < t; i++) {
-			int u = in.nextInt();
-			int v = in.nextInt();
-			int w = in.nextInt();
-			if(u != v) {
-				adj[u][v] = w;
-				
+		int a = in.nextInt();
+		int b = in.nextInt();
+		int n = in.nextInt();
+
+		StringBuilder sb1 = new StringBuilder();
+		while(in.hasNext()) {
+			sb1.append(in.next());
+		}
+		String str = sb1.toString();
+		int len = str.length();
+		
+		Map<String, Integer> map = new HashMap<>();
+		int max = 0;
+		for(int i = a; i <= b; i++) {
+			for(int j = 0; j <= len - i; j++) {
+				String str1 = str.substring(j, j + i);
+				try {
+					int val = map.get(str1);
+					val++;
+					map.put(str1, val);
+					max = max(max, val);
+				}
+				catch(Exception e) {
+					map.put(str1, 1);
+					max = max(max, 1);
+				}
+			}
+		}
+		
+		List<Pattern> patterns[] = new ArrayList[max + 1];
+		for(int i = 0; i <= max; i++) {
+			patterns[i] = new ArrayList<>();
+		}
+		for(String str1 : map.keySet()) {
+			int val = map.get(str1);
+			patterns[val].add(new Pattern(str1));
+		}
+		
+		for(int i = 1; i <= max; i++) {
+			if(patterns[i].size() != 0) {
+				Collections.sort(patterns[i]);
+			}
+		}
+		
+		int count = 0;
+		StringBuilder sb = new StringBuilder();
+		for(int i = max; i > 0; i--) {
+			if(patterns[i].size() == 0) {
+				continue;
+			}
+			if(count > 0) {
+				sb.append("\n");
+			}
+			count++;
+			// 0 0 0 0 0 0
+			// 0 0 0 0
+			sb.append(i);
+			sb.append("\n");
+			List<Pattern> list = patterns[i];
+			int sz = list.size();
+			for(int j = 1; j <= sz; j++) {
+				sb.append(list.get(j - 1).pattern);
+				if(j % 6 == 0 && j != sz) {
+					sb.append("\n");
+				}
+				else if(j < sz) {
+					sb.append(" ");
+				}
 			}
 			
-		}
-		
-		List<Pair> pairs = new ArrayList<>();
-
-		boolean found = true;
-		while(found) {
-			found = false;
-			for(int i = 1; i <= n; i++) {
-				for(int j = 1; j <= n; j++) {
-					if(dp[i][j] == 0 && adj[i][j] > 50) {
-						dp[i][j] = 1;
-						found = true;
-						for(int k = 1; k <= n; k++) {
-							if(i != k && j != k) {
-								adj[i][k] += adj[j][k];
-								if(adj[i][k] > 50) {
-									adj[i][k] = 51;
-									dp[i][j] = 1;
-								}
-							}
-						}
-					}
-				}
+			if(count == n) {
+				break;
 			}
+			
+			
 		}
-		
-		for(int i = 1; i <= n; i++) {
-			for(int j = 1; j <= n; j++) {
-				if(dp[i][j] == 1) {
-					pairs.add(new Pair(i, j));
-				}
-			}
-		}
-		
-		
-		for(Pair p : pairs) {
-			out.println(p);
-		}
+//		System.out.println(sb.toString().length());
+		out.println(sb.toString());
 		
 		out.flush();
 		out.close();
 		System.exit(0);
 	}
 	
-	private static class Pair{
-		int u;
-		int v;
-		Pair(int u, int v){
-			this.u = u;
-			this.v = v;
+	private static class Pattern implements Comparable<Pattern>{
+		String pattern;
+		int patternValue;
+		int patternLen;
+		public Pattern(String pattern) {
+			this.pattern = pattern;
+			patternValue = Integer.parseInt(pattern, 2);
+			patternLen = pattern.length();
 		}
 		
 		@Override
-		public String toString() {
-			return this.u + " " + this.v;
+		public int hashCode() {
+			return this.patternValue;
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			Pattern p = (Pattern)obj;
+			return this.patternValue == p.patternValue;
+		}
+		
+		@Override
+		public int compareTo(Pattern p2) {
+			
+			int val = Integer.compare(this.patternLen, p2.patternLen);
+			if(val == 0) {
+				return Integer.compare(this.patternValue, p2.patternValue);
+			}
+			return val;
 		}
 	}
 	
+	private static double getDistance(Point p1, Point p2) {
+		double dx = p1.a - p2.a;
+		double dy = p1.b - p2.b;
+		
+		return Math.sqrt((dx * dx) + (dy * dy));
+	}
+
 	private static String getBinaryStr(int n, int bit) {
 		StringBuilder sb = new StringBuilder();
 		String s = Integer.toBinaryString(n);
@@ -157,22 +211,25 @@ public class concom {
 
 
 	private static class Point{
-		int a;
-		int b;
-		boolean visited = false;
-		public Point(int a, int b){
+		double a;
+		double b;
+		public Point(double a, double b){
 			this.a = a;
 			this.b = b;
 		}
 		
 		@Override
 		public int hashCode() {
-			return a + b;
+			double prime = 31;
+			double result = 1;
+			result = prime * result + this.a; 
+			result = prime * result + this.b;
+			return (int)result;
 		}
 		
 		@Override
 		public String toString() {
-			return a + " " + b;
+			return this.a + "," + this.b;
 		}
 		
 		@Override

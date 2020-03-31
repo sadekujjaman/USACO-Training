@@ -1,7 +1,7 @@
 /*
 ID: shacse01
 LANG: JAVA
-TASK: concom
+TASK: humble
 */
 
 import java.io.*;
@@ -14,10 +14,10 @@ import java.util.*;
  *
  */
 
-public class concom {
+public class humble {
 
-	private static int dx[] = { 1, 0, -1, 0 };
-	private static int dy[] = { 0, -1, 0, 1 };
+	private static int dx[] = {-1, 0, 1, 0 };
+	private static int dy[] = {0, 1, 0, -1 };
 
 	private static final long INF = Long.MAX_VALUE;
 	private static final int INT_INF = Integer.MAX_VALUE;
@@ -41,89 +41,60 @@ public class concom {
 //		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("src/test.out")));
 		
 		
-		InputReader in = new InputReader(new FileInputStream("concom.in"));
-		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("concom.out")));
+		InputReader in = new InputReader(new FileInputStream("humble.in"));
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("humble.out")));
 
 		
 /*
 
-
+4 19
+2 3 5 7
 
 */
 		
-		int t = in.nextInt();
-		
-		int n = 100;
-		
-		int dp[][] = new int[n + 7][n + 7];
-		int adj[][] = new int[n + 7][n + 7];
-		for(int i = 0; i < t; i++) {
-			int u = in.nextInt();
-			int v = in.nextInt();
-			int w = in.nextInt();
-			if(u != v) {
-				adj[u][v] = w;
-				
-			}
-			
+		int k = in.nextInt();
+		int n = in.nextInt();
+		List<Integer> primes = new ArrayList<Integer>();
+		for(int i = 0; i < k; i++) {
+			int prime = in.nextInt();
+			primes.add(prime);
 		}
 		
-		List<Pair> pairs = new ArrayList<>();
-
-		boolean found = true;
-		while(found) {
-			found = false;
-			for(int i = 1; i <= n; i++) {
-				for(int j = 1; j <= n; j++) {
-					if(dp[i][j] == 0 && adj[i][j] > 50) {
-						dp[i][j] = 1;
-						found = true;
-						for(int k = 1; k <= n; k++) {
-							if(i != k && j != k) {
-								adj[i][k] += adj[j][k];
-								if(adj[i][k] > 50) {
-									adj[i][k] = 51;
-									dp[i][j] = 1;
-								}
-							}
-						}
+		int[] humbles = new int[n + 1];
+		humbles[0] = 1;
+		int[] used = new int[k];
+		for(int i = 1; i <= n; i++) {
+			int minHumble = INT_INF;
+			for(int j = 0; j < k; j++) {
+				int prime = primes.get(j);
+				int humble = prime * humbles[used[j]];
+				while(humble <= humbles[i - 1]) {
+					used[j]++;
+					if(used[j] < i) {
+						humble = prime * humbles[used[j]];
+					}
+					else {
+						break;
 					}
 				}
+				minHumble = min(minHumble, humble);
 			}
+			humbles[i] = minHumble;
 		}
-		
-		for(int i = 1; i <= n; i++) {
-			for(int j = 1; j <= n; j++) {
-				if(dp[i][j] == 1) {
-					pairs.add(new Pair(i, j));
-				}
-			}
-		}
-		
-		
-		for(Pair p : pairs) {
-			out.println(p);
-		}
+		out.println(humbles[n]);
 		
 		out.flush();
 		out.close();
 		System.exit(0);
 	}
 	
-	private static class Pair{
-		int u;
-		int v;
-		Pair(int u, int v){
-			this.u = u;
-			this.v = v;
-		}
+	private static double getDistance(Point p1, Point p2) {
+		double dx = p1.a - p2.a;
+		double dy = p1.b - p2.b;
 		
-		@Override
-		public String toString() {
-			return this.u + " " + this.v;
-		}
+		return Math.sqrt((dx * dx) + (dy * dy));
 	}
-	
+
 	private static String getBinaryStr(int n, int bit) {
 		StringBuilder sb = new StringBuilder();
 		String s = Integer.toBinaryString(n);
@@ -157,22 +128,25 @@ public class concom {
 
 
 	private static class Point{
-		int a;
-		int b;
-		boolean visited = false;
-		public Point(int a, int b){
+		double a;
+		double b;
+		public Point(double a, double b){
 			this.a = a;
 			this.b = b;
 		}
 		
 		@Override
 		public int hashCode() {
-			return a + b;
+			double prime = 31;
+			double result = 1;
+			result = prime * result + this.a; 
+			result = prime * result + this.b;
+			return (int)result;
 		}
 		
 		@Override
 		public String toString() {
-			return a + " " + b;
+			return this.a + "," + this.b;
 		}
 		
 		@Override

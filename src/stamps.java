@@ -1,7 +1,7 @@
 /*
 ID: shacse01
 LANG: JAVA
-TASK: concom
+TASK: stamps
 */
 
 import java.io.*;
@@ -14,10 +14,10 @@ import java.util.*;
  *
  */
 
-public class concom {
+public class stamps {
 
-	private static int dx[] = { 1, 0, -1, 0 };
-	private static int dy[] = { 0, -1, 0, 1 };
+	private static int dx[] = {-1, 0, 1, 0 };
+	private static int dy[] = {0, 1, 0, -1 };
 
 	private static final long INF = Long.MAX_VALUE;
 	private static final int INT_INF = Integer.MAX_VALUE;
@@ -41,68 +41,49 @@ public class concom {
 //		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("src/test.out")));
 		
 		
-		InputReader in = new InputReader(new FileInputStream("concom.in"));
-		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("concom.out")));
+		InputReader in = new InputReader(new FileInputStream("stamps.in"));
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("stamps.out")));
 
 		
 /*
 
-
+5 2
+1 3
 
 */
+		int k = in.nextInt();
+		int n = in.nextInt();
 		
-		int t = in.nextInt();
-		
-		int n = 100;
-		
-		int dp[][] = new int[n + 7][n + 7];
-		int adj[][] = new int[n + 7][n + 7];
-		for(int i = 0; i < t; i++) {
-			int u = in.nextInt();
-			int v = in.nextInt();
-			int w = in.nextInt();
-			if(u != v) {
-				adj[u][v] = w;
-				
-			}
-			
+		int stamps[] = new int[n];
+		for(int i = 0; i < n; i++) {
+			stamps[i] = in.nextInt();
 		}
 		
-		List<Pair> pairs = new ArrayList<>();
-
-		boolean found = true;
-		while(found) {
-			found = false;
-			for(int i = 1; i <= n; i++) {
-				for(int j = 1; j <= n; j++) {
-					if(dp[i][j] == 0 && adj[i][j] > 50) {
-						dp[i][j] = 1;
-						found = true;
-						for(int k = 1; k <= n; k++) {
-							if(i != k && j != k) {
-								adj[i][k] += adj[j][k];
-								if(adj[i][k] > 50) {
-									adj[i][k] = 51;
-									dp[i][j] = 1;
-								}
-							}
-						}
+		Arrays.sort(stamps);
+		int maxStamp = stamps[n - 1];
+		int maxPossibleValue = maxStamp * k;
+		
+		int stampUsed[] = new int[maxPossibleValue + 5];
+		// stampUsed[i] = optimal stamps needed for makes i
+		
+		Arrays.fill(stampUsed, INT_INF);
+		for(int i = 1; i <= maxPossibleValue + 3; i++) {
+			for(int j = 0; j < n; j++) {
+				if(stamps[j] <= i) {
+					if(stampUsed[i - stamps[j]] == INT_INF) {
+						stampUsed[i] = min(stampUsed[i], 1);
 					}
+					else {
+						stampUsed[i] = min(stampUsed[i], stampUsed[i - stamps[j]] + 1);
+					}
+					
 				}
 			}
-		}
-		
-		for(int i = 1; i <= n; i++) {
-			for(int j = 1; j <= n; j++) {
-				if(dp[i][j] == 1) {
-					pairs.add(new Pair(i, j));
-				}
+			if(stampUsed[i] >= k + 1) {
+				out.println(i - 1);
+				break;
 			}
-		}
-		
-		
-		for(Pair p : pairs) {
-			out.println(p);
+//			System.out.println(i + " " + stampUsed[i]);
 		}
 		
 		out.flush();
@@ -110,20 +91,13 @@ public class concom {
 		System.exit(0);
 	}
 	
-	private static class Pair{
-		int u;
-		int v;
-		Pair(int u, int v){
-			this.u = u;
-			this.v = v;
-		}
+	private static double getDistance(Point p1, Point p2) {
+		double dx = p1.a - p2.a;
+		double dy = p1.b - p2.b;
 		
-		@Override
-		public String toString() {
-			return this.u + " " + this.v;
-		}
+		return Math.sqrt((dx * dx) + (dy * dy));
 	}
-	
+
 	private static String getBinaryStr(int n, int bit) {
 		StringBuilder sb = new StringBuilder();
 		String s = Integer.toBinaryString(n);
@@ -157,22 +131,25 @@ public class concom {
 
 
 	private static class Point{
-		int a;
-		int b;
-		boolean visited = false;
-		public Point(int a, int b){
+		double a;
+		double b;
+		public Point(double a, double b){
 			this.a = a;
 			this.b = b;
 		}
 		
 		@Override
 		public int hashCode() {
-			return a + b;
+			double prime = 31;
+			double result = 1;
+			result = prime * result + this.a; 
+			result = prime * result + this.b;
+			return (int)result;
 		}
 		
 		@Override
 		public String toString() {
-			return a + " " + b;
+			return this.a + "," + this.b;
 		}
 		
 		@Override

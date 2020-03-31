@@ -1,7 +1,7 @@
 /*
 ID: shacse01
 LANG: JAVA
-TASK: concom
+TASK: spin
 */
 
 import java.io.*;
@@ -14,10 +14,10 @@ import java.util.*;
  *
  */
 
-public class concom {
+public class spin {
 
-	private static int dx[] = { 1, 0, -1, 0 };
-	private static int dy[] = { 0, -1, 0, 1 };
+	private static int dx[] = {-1, 0, 1, 0 };
+	private static int dy[] = {0, 1, 0, -1 };
 
 	private static final long INF = Long.MAX_VALUE;
 	private static final int INT_INF = Integer.MAX_VALUE;
@@ -41,68 +41,85 @@ public class concom {
 //		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("src/test.out")));
 		
 		
-		InputReader in = new InputReader(new FileInputStream("concom.in"));
-		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("concom.out")));
+		InputReader in = new InputReader(new FileInputStream("spin.in"));
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("spin.out")));
 
 		
 /*
 
 
-
 */
 		
-		int t = in.nextInt();
+		int n = 5;
 		
-		int n = 100;
-		
-		int dp[][] = new int[n + 7][n + 7];
-		int adj[][] = new int[n + 7][n + 7];
-		for(int i = 0; i < t; i++) {
-			int u = in.nextInt();
-			int v = in.nextInt();
-			int w = in.nextInt();
-			if(u != v) {
-				adj[u][v] = w;
-				
+		Wheel[] wheels = new Wheel[n];
+		for(int i = 0; i < n; i++) {
+			int speed = in.nextInt();;
+			int wedge = in.nextInt();
+			Wedge[] wedges = new Wedge[wedge];
+			for(int j = 0; j < wedge; j++) {
+				int start = in.nextInt();
+				int size = in.nextInt();
+				wedges[j] = new Wedge(start, size);
 			}
-			
+			wheels[i] = new Wheel(speed, wedges);
+//			System.out.println(wheels[i].wedges[0]);
 		}
-		
-		List<Pair> pairs = new ArrayList<>();
-
-		boolean found = true;
-		while(found) {
-			found = false;
-			for(int i = 1; i <= n; i++) {
-				for(int j = 1; j <= n; j++) {
-					if(dp[i][j] == 0 && adj[i][j] > 50) {
-						dp[i][j] = 1;
-						found = true;
-						for(int k = 1; k <= n; k++) {
-							if(i != k && j != k) {
-								adj[i][k] += adj[j][k];
-								if(adj[i][k] > 50) {
-									adj[i][k] = 51;
-									dp[i][j] = 1;
-								}
-							}
+		int ans = -1;
+		for(int t = 0; t < 360; t++) {
+			boolean[][] occupy = new boolean[n][361];
+			for(int i = 0; i < n; i++) {
+				for(int j = 0; j < wheels[i].wedges.length; j++) {
+					int st = wheels[i].wedges[j].start;
+					int end = (st + wheels[i].wedges[j].size) % 360;
+					if(st >= end) {
+						for(int k = st; k <= 360; k++) {
+							occupy[i][k] = true;
+						}
+						for(int k = 0; k <= end; k++) {
+							occupy[i][k] = true;
+						}
+					}
+					else {
+						
+						for(int k = st; k <= end; k++) {
+							occupy[i][k] = true;
 						}
 					}
 				}
 			}
-		}
-		
-		for(int i = 1; i <= n; i++) {
-			for(int j = 1; j <= n; j++) {
-				if(dp[i][j] == 1) {
-					pairs.add(new Pair(i, j));
+			for(int j = 0; j < 360; j++) {
+				boolean isOk = true;
+				for(int i = 0; i < n; i++) {
+//					System.out.println(visited[i][j]);
+					if(!occupy[i][j]) {
+						isOk = false;
+						break;
+					}
+				}
+				
+				if(isOk == true) {
+					ans = t;
+					break;
 				}
 			}
+//			System.out.println(ans);
+			if(ans != -1) {
+				break;
+			}
+			for (int i = 0; i < 5; i++){
+				for (int j = 0; j < wheels[i].wedges.length; j++) {
+					wheels[i].wedges[j].start += wheels[i].speed;
+					wheels[i].wedges[j].start %= 360;
+				}
+			}
+			
 		}
-		
-		
-		for(Pair p : pairs) {
-			out.println(p);
+		if(ans != -1) {
+			out.println(ans);
+		}
+		else {
+			out.println("none");
 		}
 		
 		out.flush();
@@ -110,20 +127,37 @@ public class concom {
 		System.exit(0);
 	}
 	
-	private static class Pair{
-		int u;
-		int v;
-		Pair(int u, int v){
-			this.u = u;
-			this.v = v;
+	private static class Wheel{
+		int speed;
+		Wedge[] wedges;
+		Wheel(int speed, Wedge[] wedges){
+			this.speed = speed;
+			this.wedges = wedges;
 		}
 		
-		@Override
-		public String toString() {
-			return this.u + " " + this.v;
-		}
 	}
 	
+	private static class Wedge{
+		int start;
+		int size;
+		Wedge(int start, int size){
+			this.start = start;
+			this.size = size;
+		}
+		
+	}
+	
+	private static int log(int x, int base) {
+		return (int) (Math.log(x) / Math.log(base));
+	}
+	
+	private static double getDistance(Point p1, Point p2) {
+		double dx = p1.a - p2.a;
+		double dy = p1.b - p2.b;
+		
+		return Math.sqrt((dx * dx) + (dy * dy));
+	}
+
 	private static String getBinaryStr(int n, int bit) {
 		StringBuilder sb = new StringBuilder();
 		String s = Integer.toBinaryString(n);
@@ -157,22 +191,25 @@ public class concom {
 
 
 	private static class Point{
-		int a;
-		int b;
-		boolean visited = false;
-		public Point(int a, int b){
+		double a;
+		double b;
+		public Point(double a, double b){
 			this.a = a;
 			this.b = b;
 		}
 		
 		@Override
 		public int hashCode() {
-			return a + b;
+			double prime = 31;
+			double result = 1;
+			result = prime * result + this.a; 
+			result = prime * result + this.b;
+			return (int)result;
 		}
 		
 		@Override
 		public String toString() {
-			return a + " " + b;
+			return this.a + "," + this.b;
 		}
 		
 		@Override
